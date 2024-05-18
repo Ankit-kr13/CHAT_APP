@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:demo/widgets/user_image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -15,10 +18,11 @@ class _AuthScreenState extends State<AuthScreen> {
   var islogin = true;
   var enteredEmail = "";
   var enteredPassword = "";
+  File? selectedImage;
   void submit() async {
     final isValid = formKey.currentState!.validate();
 
-    if (!isValid) {
+    if (!isValid || !islogin && selectedImage == null) {
       return;
     }
 
@@ -66,6 +70,12 @@ class _AuthScreenState extends State<AuthScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          if (!islogin)
+                            UserImagePicker(
+                              onPickImage: (pickedImage) {
+                                selectedImage = pickedImage;
+                              },
+                            ),
                           TextFormField(
                             decoration: const InputDecoration(
                               labelText: 'Email Address',

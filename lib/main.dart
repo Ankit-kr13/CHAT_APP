@@ -1,5 +1,5 @@
 import 'package:demo/screens/authScreen.dart';
-import 'package:demo/screens/chat.dart';
+import 'package:demo/screens/chatScreen.dart';
 import 'package:demo/screens/splash.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
       title: 'ChatApp',
       theme: ThemeData().copyWith(
         colorScheme:
-            ColorScheme.fromSeed(seedColor: Color.fromARGB(255, 149, 39, 203)),
+            ColorScheme.fromSeed(seedColor: Color.fromARGB(255, 178, 80, 226)),
       ),
       home: StreamBuilder(
         stream: FirebaseAuth.instance.authStateChanges(),
