@@ -1,5 +1,5 @@
 import 'dart:io';
-
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:demo/widgets/user_image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +19,7 @@ class _AuthScreenState extends State<AuthScreen> {
   var enteredEmail = "";
   var enteredPassword = "";
   File? selectedImage;
+  var isAuthenticating = false;
   void submit() async {
     final isValid = formKey.currentState!.validate();
 
@@ -29,12 +30,23 @@ class _AuthScreenState extends State<AuthScreen> {
     formKey.currentState!.save();
 
     try {
+      setState(() {
+        isAuthenticating = true;
+      });
       if (islogin) {
         final userCredential = await firebase.signInWithEmailAndPassword(
             email: enteredEmail, password: enteredPassword);
       } else {
         final userCredentials = await firebase.createUserWithEmailAndPassword(
             email: enteredEmail, password: enteredPassword);
+
+        final storageRef = FirebaseStorage.instance
+            .ref()
+            .child('user_images')
+            .child('${userCredentials.user!.uid}.jpg');
+
+        await storageRef.putFile(selectedImage!);
+        final imgUrl = await storageRef.getDownloadURL();
       }
     } on FirebaseAuthException catch (error) {
       if (error.code == 'email-already-in-use') {
@@ -42,7 +54,13 @@ class _AuthScreenState extends State<AuthScreen> {
       }
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.message ?? 'Authentication Failed')));
+        SnackBar(
+          content: Text(error.message ?? 'Authentication Failed'),
+        ),
+      );
+      setState(() {
+        isAuthenticating = false;
+      });
     }
   }
 
@@ -113,19 +131,23 @@ class _AuthScreenState extends State<AuthScreen> {
                           const SizedBox(
                             height: 12,
                           ),
-                          ElevatedButton(
-                              onPressed: submit,
-                              child: Text(islogin ? 'Login' : 'Signup')),
-                          TextButton(
-                            onPressed: () {
-                              setState(() {
-                                islogin = !islogin;
-                              });
-                            },
-                            child: Text(islogin
-                                ? 'Create an account'
-                                : 'I have already have an account.'),
-                          ),
+                          if (isAuthenticating)
+                            const CircularProgressIndicator(),
+                          if (!isAuthenticating)
+                            ElevatedButton(
+                                onPressed: submit,
+                                child: Text(islogin ? 'Login' : 'Signup')),
+                          if (!isAuthenticating)
+                            TextButton(
+                              onPressed: () {
+                                setState(() {
+                                  islogin = !islogin;
+                                });
+                              },
+                              child: Text(islogin
+                                  ? 'Create an account'
+                                  : 'I have already have an account.'),
+                            ),
                         ],
                       ),
                     ),
